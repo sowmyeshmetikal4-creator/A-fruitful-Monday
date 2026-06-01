@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Navath Sai Kumar</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0f0c0c;
+    --card: #1a1414;
+    --border: #2e2020;
+    --red: #c0392b;
+    --red-light: #e74c3c;
+    --gold: #d4a843;
+    --gold-light: #f0c060;
+    --text: #f0e6d3;
+    --muted: #8a7060;
+    --green: #27ae60;
+    --green-light: #2ecc71;
+  }
+
+  body {
+    background: var(--bg);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'DM Sans', sans-serif;
+    overflow: hidden;
+  }
+
+  /* Subtle noise texture */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .scene {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    padding: 3rem;
+  }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    padding: 3.5rem 4rem;
+    max-width: 480px;
+    position: relative;
+    box-shadow: 0 0 80px rgba(192, 57, 43, 0.08);
+  }
+
+  /* Corner decorations */
+  .card::before, .card::after {
+    content: '';
+    position: absolute;
+    width: 20px; height: 20px;
+    border-color: var(--gold);
+    border-style: solid;
+  }
+  .card::before { top: -1px; left: -1px; border-width: 2px 0 0 2px; }
+  .card::after  { bottom: -1px; right: -1px; border-width: 0 2px 2px 0; }
+
+  .eyebrow {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 1.2rem;
+  }
+
+  .headline {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.2rem;
+    font-weight: 400;
+    color: var(--text);
+    line-height: 1.25;
+    margin-bottom: 0.5rem;
+  }
+
+  .headline em {
+    font-style: italic;
+    color: var(--gold);
+  }
+
+  .subline {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 2.5rem;
+    line-height: 1.6;
+  }
+
+  /* The button */
+  .sorry-btn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background: transparent;
+    border: 1.5px solid var(--red);
+    color: var(--text);
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem;
+    font-style: italic;
+    padding: 14px 40px;
+    cursor: pointer;
+    letter-spacing: 0.02em;
+    transition: all 0.3s ease;
+    outline: none;
+    width: 100%;
+    overflow: hidden;
+  }
+
+  .sorry-btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--red);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.3s ease;
+    z-index: 0;
+  }
+
+  .sorry-btn:hover::before { transform: scaleX(1); }
+  .sorry-btn:hover { border-color: var(--red-light); }
+
+  .sorry-btn span { position: relative; z-index: 1; }
+
+  .heart-icon {
+    position: relative;
+    z-index: 1;
+    font-size: 14px;
+    animation: heartbeat 2s infinite;
+  }
+
+  @keyframes heartbeat {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.3); }
+  }
+
+  /* Pending state */
+  .status-row {
+    margin-top: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    min-height: 20px;
+    transition: opacity 0.3s;
+  }
+
+  .status-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--muted);
+    animation: blink 1.5s infinite;
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.2; }
+  }
+
+  /* Count badge */
+  .count-badge {
+    margin-top: 1rem;
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    opacity: 0;
+    transition: opacity 0.4s;
+  }
+
+  /* Accepted state */
+  .accepted .card {
+    box-shadow: 0 0 80px rgba(39, 174, 96, 0.12);
+    border-color: #1e3a27;
+  }
+
+  .accepted .card::before,
+  .accepted .card::after {
+    border-color: var(--green);
+  }
+
+  .accepted .sorry-btn {
+    border-color: var(--green);
+    cursor: default;
+    pointer-events: none;
+    background: rgba(39, 174, 96, 0.08);
+    color: var(--green-light);
+    font-style: normal;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    font-size: 0.95rem;
+  }
+
+  .accepted .sorry-btn::before { display: none; }
+
+  .accepted .status-dot {
+    background: var(--green-light);
+    animation: none;
+  }
+
+  .accepted .headline em { color: var(--green-light); }
+
+  /* Confetti */
+  .confetti-wrap {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 99;
+  }
+
+  .confetti-piece {
+    position: absolute;
+    width: 8px; height: 8px;
+    opacity: 0;
+    animation: fall 1.8s ease-in forwards;
+  }
+
+  @keyframes fall {
+    0%   { transform: translateY(-20px) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+  }
+
+  /* Shake on multiple clicks */
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20%       { transform: translateX(-6px); }
+    40%       { transform: translateX(6px); }
+    60%       { transform: translateX(-4px); }
+    80%       { transform: translateX(4px); }
+  }
+
+  .shake { animation: shake 0.4s ease; }
+
+  /* Accept btn */
+  .accept-row {
+    margin-top: 1.5rem;
+    display: none;
+    gap: 10px;
+  }
+
+  .accept-row.visible { display: flex; }
+
+  .accept-btn {
+    flex: 1;
+    padding: 11px 20px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    border: 1px solid;
+    background: transparent;
+    transition: all 0.2s;
+    outline: none;
+  }
+
+  .accept-btn.yes {
+    border-color: var(--green);
+    color: var(--green-light);
+  }
+  .accept-btn.yes:hover {
+    background: rgba(39,174,96,0.1);
+  }
+
+  .accept-btn.no {
+    border-color: var(--border);
+    color: var(--muted);
+  }
+  .accept-btn.no:hover {
+    border-color: var(--red);
+    color: var(--red-light);
+  }
+
+  .accept-label {
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    text-align: left;
+  }
+</style>
+</head>
+<body>
+
+<div class="scene" id="scene">
+  <div class="card" id="card">
+    <p class="eyebrow">An apology, sincerely</p>
+    <p><a href="tel:+917569855724">+917569855724</a></p>
+    <h1 class="headline" id="headline">I am truly <em>sorry</em></h1>
+    <p class="subline" id="subline">Press the button to send your apology.<br>It won't go away until it's accepted.</p>
+
+    <button class="sorry-btn" id="sorryBtn" onclick="handleSorry()">
+      <span class="smiley-icon">😊</span>
+      <span class="archer-icon">🎯</span>
+      <span class="8ballpool-icon">🎱</span> </br>
+      <span class="bucks-bunny-icon">🐇<span>
+      <span class="prince-icon">🙅</span>   
+      <span class="heart-icon">💞</span>
+      <span class="butterfly-icon">🦋</span></br>
+      <span class="crown-icon">👑</span>
+      <span class="Queen-icon">💃</span>
+      <span class="horse-icon">🎠</span>
+      <span class="droplets-icon">💦</span>
+      <span class="diamond-icon">💎</span></br>
+      <span class="crown-icon">👑</span> 
+      <span class="Queens-icon">👯‍♀️</span>
+      <span class="carrot-icon">🥕</span> 
+      <span class="diamond-icon">💎</span>
+      <span class="aeroplane-icon">✈️</span>
+      <span class="thumbs-icon">👍</span><br/>
+      <span id="btnText">Prince invitation</span>
+    </button>
+
+    <div class="accept-row" id="acceptRow">
+      <div style="flex:1;">
+        <p class="accept-label">Do you accept?</p>
+        <div style="display:flex;gap:8px;">
+          <button class="accept-btn yes" onclick="accept()">Yes, I accept ✓</button>
+          <button class="accept-btn no" onclick="notYet()">Not yet</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="status-row" id="statusRow">
+      <div class="status-dot" id="statusDot"></div>
+      <span id="statusText">Waiting to be sent…</span>
+    </div>
+
+    <p class="count-badge" id="countBadge"></p>
+  </div>
+</div>
+
+<div class="confetti-wrap" id="confettiWrap"></div>
+
+<script>
+  let clicks = 0;
+  let accepted = false;
+  let prompted = false;
+
+  const btn      = document.getElementById('sorryBtn');
+  const btnText  = document.getElementById('btnText');
+  const statusText = document.getElementById('statusText');
+  const statusDot  = document.getElementById('statusDot');
+  const acceptRow  = document.getElementById('acceptRow');
+  const countBadge = document.getElementById('countBadge');
+  const scene      = document.getElementById('scene');
+  const headline   = document.getElementById('headline');
+  const subline    = document.getElementById('subline');
+  const card       = document.getElementById('card');
+
+  const messages = [
+    "I'm Sorry",
+    "I really mean it…",
+    "Please forgive me?",
+    "I am so sorry ♥",
+    "I was wrong. I'm sorry.",
+    "Still sorry. Always will be.",
+    "From the bottom of my heart…",
+    "I'll keep saying it until you accept.",
+  ];
+
+  const statuses = [
+    "Apology sent. Awaiting acceptance…",
+    "Still waiting…",
+    "Genuinely sorry. Still here.",
+    "Won't stop until you say yes.",
+    "Knock knock… it's your apology again.",
+    "This apology has no expiry date.",
+    "Patience level: infinite.",
+  ];
+
+  function handleSorry() {
+    if (accepted) return;
+    clicks++;
+
+    const msgIdx = Math.min(clicks - 1, messages.length - 1);
+    const statIdx = Math.min(clicks - 1, statuses.length - 1);
+
+    btnText.textContent = messages[msgIdx];
+    statusText.textContent = statuses[statIdx];
+    statusDot.style.background = '#d4a843';
+    statusDot.style.animation = 'blink 1s infinite';
+
+    if (clicks >= 3 && !prompted) {
+      prompted = true;
+      acceptRow.classList.add('visible');
+      subline.textContent = 'Do you accept this apology?';
+    }
+
+    if (clicks > 1) {
+      countBadge.style.opacity = '1';
+      countBadge.textContent = `Apologised ${clicks} time${clicks > 1 ? 's' : ''}`;
+      card.classList.remove('shake');
+      void card.offsetWidth;
+      card.classList.add('shake');
+    }
+  }
+
+  function accept() {
+    accepted = true;
+    scene.classList.add('accepted');
+    acceptRow.classList.remove('visible');
+    btnText.textContent = 'Apology Accepted ✓';
+    headline.innerHTML = 'All is <em>wish Dreamz</em>';
+    subline.textContent = 'Thank you for accepting. That means everything.';
+    statusText.textContent = 'Accepted with grace.';
+    statusDot.style.background = 'var(--green-light)';
+    statusDot.style.animation = 'none';
+    countBadge.style.opacity = '0';
+    launchConfetti();
+  }
+
+  function notYet() {
+    acceptRow.classList.remove('visible');
+    prompted = false;
+    subline.textContent = 'Okay. Keep pressing. This apology isn\'t going anywhere.';
+    statusText.textContent = 'Not yet accepted. Keep trying…';
+    statusDot.style.background = 'var(--red)';
+    card.classList.remove('shake');
+    void card.offsetWidth;
+    card.classList.add('shake');
+  }
+
+  function launchConfetti() {
+    const wrap = document.getElementById('confettiWrap');
+    const colors = ['#d4a843','#27ae60','#c0392b','#f0e6d3','#2ecc71','#f0c060'];
+    for (let i = 0; i < 60; i++) {
+      const el = document.createElement('div');
+      el.className = 'confetti-piece';
+      el.style.left = Math.random() * 100 + 'vw';
+      el.style.top = '-10px';
+      el.style.background = colors[Math.floor(Math.random() * colors.length)];
+      el.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
+      el.style.width = (6 + Math.random() * 8) + 'px';
+      el.style.height = (6 + Math.random() * 8) + 'px';
+      el.style.animationDelay = (Math.random() * 0.8) + 's';
+      el.style.animationDuration = (1.2 + Math.random() * 1) + 's';
+      wrap.appendChild(el);
+      el.addEventListener('animationend', () => el.remove());
+    }
+  }
+
+  card.addEventListener('animationend', () => card.classList.remove('shake'));
+</script>
+</body>
+</html>

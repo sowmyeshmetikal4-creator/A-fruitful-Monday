@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Monday Mashup-A Fruitful Story</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Crimson+Pro:ital,wght@0,300;0,400;1,300;1,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+
+:root{
+  --ink:#0a0a0a;
+  --paper:#f5f0e8;
+  --cream:#ede8dc;
+  --accent:#e63946;
+  --gold:#d4a017;
+  --blue:#1d3557;
+  --muted:#7a7060;
+  --rule:#c8bfa8;
+}
+
+html{scroll-behavior:smooth;}
+
+body{
+  background:var(--paper);
+  color:var(--ink);
+  font-family:'Crimson Pro',Georgia,serif;
+  font-size:18px;
+  line-height:1.75;
+  cursor:default;
+}
+
+/* Masthead */
+.masthead{
+  background:var(--ink);
+  color:var(--paper);
+  text-align:center;
+  padding:2.5rem 1rem 1.5rem;
+  position:relative;
+  overflow:hidden;
+}
+
+.masthead::before{
+  content:'';
+  position:absolute;
+  inset:0;
+  background:repeating-linear-gradient(
+    90deg,
+    transparent,
+    transparent 60px,
+    rgba(255,255,255,0.03) 60px,
+    rgba(255,255,255,0.03) 61px
+  );
+}
+
+.issue-line{
+  font-family:'Space Mono',monospace;
+  font-size:10px;
+  letter-spacing:0.3em;
+  text-transform:uppercase;
+  color:var(--gold);
+  margin-bottom:1rem;
+}
+
+.paper-title{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(4rem,12vw,8rem);
+  letter-spacing:0.04em;
+  line-height:0.9;
+  color:var(--paper);
+  position:relative;
+  z-index:1;
+}
+
+.paper-title span{color:var(--accent);}
+
+.paper-subtitle{
+  font-family:'Space Mono',monospace;
+  font-size:10px;
+  letter-spacing:0.25em;
+  color:var(--muted);
+  margin-top:0.75rem;
+  text-transform:uppercase;
+}
+
+.masthead-rule{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  margin:1.2rem auto 0;
+  max-width:600px;
+}
+
+.masthead-rule::before,.masthead-rule::after{
+  content:'';
+  flex:1;
+  height:1px;
+  background:var(--gold);
+}
+
+.masthead-rule span{
+  font-family:'Space Mono',monospace;
+  font-size:9px;
+  color:var(--gold);
+  letter-spacing:0.2em;
+  white-space:nowrap;
+}
+
+/* Hero */
+.hero{
+  border-bottom:3px solid var(--ink);
+  padding:0;
+  background:var(--cream);
+}
+
+.hero-inner{
+  max-width:1100px;
+  margin:0 auto;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  min-height:420px;
+}
+
+.hero-text{
+  padding:3rem 2.5rem 3rem 2.5rem;
+  border-right:1.5px solid var(--ink);
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+}
+
+.kicker{
+  font-family:'Space Mono',monospace;
+  font-size:10px;
+  letter-spacing:0.2em;
+  text-transform:uppercase;
+  color:var(--accent);
+  margin-bottom:1rem;
+}
+
+.hero-headline{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:clamp(2.8rem,5vw,4.5rem);
+  line-height:0.95;
+  color:var(--ink);
+  margin-bottom:1.2rem;
+}
+
+.hero-deck{
+  font-size:1.15rem;
+  font-style:italic;
+  color:var(--muted);
+  line-height:1.6;
+  font-weight:300;
+  border-left:3px solid var(--accent);
+  padding-left:1rem;
+}
+
+.hero-art{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:2rem;
+  position:relative;
+  overflow:hidden;
+}
+
+/* Illustrated Monday chaos art */
+.chaos-art{
+  width:100%;
+  max-width:340px;
+}
+
+/* Main content */
+.content-wrap{
+  max-width:1100px;
+  margin:0 auto;
+  padding:3rem 1.5rem 5rem;
+}
+
+.columns{
+  display:grid;
+  grid-template-columns:1fr 2fr;
+  gap:0;
+  border-top:1.5px solid var(--ink);
+  padding-top:2.5rem;
+}
+
+/* Sidebar */
+.sidebar{
+  padding-right:2.5rem;
+  border-right:1px solid var(--rule);
+  padding-top:0.5rem;
+}
+
+.sidebar-label{
+  font-family:'Space Mono',monospace;
+  font-size:9px;
+  letter-spacing:0.25em;
+  text-transform:uppercase;
+  color:var(--muted);
+  border-bottom:1px solid var(--rule);
+  padding-bottom:6px;
+  margin-bottom:1rem;
+}
+
+.sidebar-pull{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:2.2rem;
+  line-height:1.05;
+  color:var(--blue);
+  margin-bottom:1.5rem;
+}
+
+.sidebar-fact{
+  font-size:13px;
+  font-family:'Space Mono',monospace;
+  line-height:1.7;
+  color:var(--muted);
+  margin-bottom:1.5rem;
+  padding-bottom:1.5rem;
+  border-bottom:1px dashed var(--rule);
+}
+
+.sidebar-fact strong{color:var(--ink);}
+
+.character-card{
+  background:var(--ink);
+  color:var(--paper);
+  padding:1.25rem;
+  margin-bottom:1rem;
+}
+
+.character-card .name{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:1.4rem;
+  color:var(--gold);
+  line-height:1;
+  margin-bottom:4px;
+}
+
+.character-card .role{
+  font-family:'Space Mono',monospace;
+  font-size:9px;
+  letter-spacing:0.15em;
+  text-transform:uppercase;
+  color:var(--muted);
+  margin-bottom:8px;
+}
+
+.character-card p{
+  font-size:13px;
+  line-height:1.6;
+  color:#c8bfa8;
+}
+
+/* Story */
+.story{
+  padding-left:3rem;
+}
+
+.chapter{
+  margin-bottom:3rem;
+}
+
+.chapter-number{
+  font-family:'Space Mono',monospace;
+  font-size:9px;
+  letter-spacing:0.25em;
+  text-transform:uppercase;
+  color:var(--accent);
+  margin-bottom:0.4rem;
+}
+
+.chapter-title{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:2rem;
+  line-height:1;
+  color:var(--ink);
+  margin-bottom:1.2rem;
+  border-bottom:2px solid var(--ink);
+  padding-bottom:0.5rem;
+}
+
+.story p{
+  margin-bottom:1.2rem;
+  font-size:1.05rem;
+  text-align:justify;
+  hyphens:auto;
+}
+
+.story p::first-letter{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:3.5rem;
+  float:left;
+  line-height:0.8;
+  margin:0.1em 0.08em -0.05em 0;
+  color:var(--accent);
+}
+
+.story .chapter:not(:first-child) p:first-child::first-letter{
+  font-size:2.2rem;
+  color:var(--blue);
+}
+
+.pull-quote{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:2.4rem;
+  line-height:1.05;
+  color:var(--blue);
+  border-top:3px solid var(--ink);
+  border-bottom:3px solid var(--ink);
+  padding:1.2rem 0;
+  margin:2rem 0;
+  text-align:center;
+}
+
+.pull-quote em{color:var(--accent);}
+
+.scene-break{
+  text-align:center;
+  font-family:'Space Mono',monospace;
+  font-size:12px;
+  letter-spacing:0.3em;
+  color:var(--muted);
+  margin:2rem 0;
+}
+
+/* End matter */
+.end-card{
+  background:var(--ink);
+  color:var(--paper);
+  max-width:1100px;
+  margin:0 auto 0;
+  padding:3rem 2.5rem;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:2rem;
+  flex-wrap:wrap;
+}
+
+.end-card .moral{
+  font-family:'Crimson Pro',serif;
+  font-style:italic;
+  font-size:1.4rem;
+  color:var(--gold);
+  flex:1;
+  line-height:1.5;
+}
+
+.end-card .stamp{
+  font-family:'Bebas Neue',sans-serif;
+  font-size:1rem;
+  letter-spacing:0.2em;
+  color:var(--accent);
+  border:2px solid var(--accent);
+  padding:0.6rem 1.2rem;
+  white-space:nowrap;
+}
+
+/* Animations */
+@keyframes fadeUp{
+  from{opacity:0;transform:translateY(24px);}
+  to{opacity:1;transform:translateY(0);}
+}
+
+.paper-title{animation:fadeUp 0.8s ease both;}
+.hero-headline{animation:fadeUp 0.8s 0.2s ease both;}
+.hero-deck{animation:fadeUp 0.8s 0.4s ease both;}
+
+/* Ticker */
+.ticker{
+  background:var(--accent);
+  color:#fff;
+  padding:6px 0;
+  overflow:hidden;
+  white-space:nowrap;
+  font-family:'Space Mono',monospace;
+  font-size:11px;
+  letter-spacing:0.1em;
+}
+
+.ticker-inner{
+  display:inline-block;
+  animation:ticker 28s linear infinite;
+}
+
+@keyframes ticker{
+  from{transform:translateX(0);}
+  to{transform:translateX(-50%);}
+}
+
+@media(max-width:700px){
+  .hero-inner,.columns{grid-template-columns:1fr;}
+  .hero-text{border-right:none;border-bottom:1.5px solid var(--ink);}
+  .hero-art{display:none;}
+  .sidebar{border-right:none;border-bottom:1px solid var(--rule);padding-right:0;padding-bottom:2rem;margin-bottom:2rem;}
+  .story{padding-left:0;}
+}
+</style>
+</head>
+<body>
+
+<!-- Ticker -->
+<div class="ticker">
+  <span class="ticker-inner">
+    MONDAY STRIKES AGAIN &nbsp;✦&nbsp; ALARM CLOCK VOTED MOST HATED OBJECT &nbsp;✦&nbsp; COFFEE SUPPLIES CRITICALLY LOW &nbsp;✦&nbsp; INBOX REACHES RECORD 247 UNREAD &nbsp;✦&nbsp; MONDAY STRIKES AGAIN &nbsp;✦&nbsp; ALARM CLOCK VOTED MOST HATED OBJECT &nbsp;✦&nbsp; COFFEE SUPPLIES CRITICALLY LOW &nbsp;✦&nbsp; INBOX REACHES RECORD 247 UNREAD &nbsp;✦&nbsp;
+  </span>
+</div>
+
+<!-- Masthead -->
+<div class="masthead">
+  <p class="issue-line">Vol. VII &nbsp;·&nbsp; Issue 01 &nbsp;·&nbsp; Monday, May 18, 2026</p>
+  <h1 class="paper-title">Monday<br><span>Mashup</span></h1>
+  <p class="paper-subtitle">The weekly chronicle of beautiful chaos</p>
+  <div class="masthead-rule"><span>Est. Every Wretched Monday Since Forever</span></div>
+</div>
+
+<!-- Hero -->
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-text">
+      <p class="kicker">This week's feature</p>
+      <h2 class="hero-headline">The Day Everything Happened at Once</h2>
+      <p class="hero-deck">One woman. One Monday. Seven disasters, four miracles, and exactly one cup of coffee that changed the entire course of an ordinary life.</p>
+    </div>
+    <div class="hero-art">
+      <svg class="chaos-art" viewBox="0 0 340 320" xmlns="http://www.w3.org/2000/svg">
+        <!-- Clock face -->
+        <circle cx="170" cy="130" r="90" fill="#0a0a0a"/>
+        <circle cx="170" cy="130" r="84" fill="#f5f0e8"/>
+        <circle cx="170" cy="130" r="4" fill="#e63946"/>
+        <!-- Clock numbers suggestion -->
+        <text x="170" y="58" text-anchor="middle" font-family="Bebas Neue,sans-serif" font-size="14" fill="#0a0a0a">12</text>
+        <text x="252" y="136" text-anchor="middle" font-family="Bebas Neue,sans-serif" font-size="14" fill="#0a0a0a">3</text>
+        <text x="170" y="212" text-anchor="middle" font-family="Bebas Neue,sans-serif" font-size="14" fill="#0a0a0a">6</text>
+        <text x="88" y="136" text-anchor="middle" font-family="Bebas Neue,sans-serif" font-size="14" fill="#0a0a0a">9</text>
+        <!-- Hour hand pointing to ~7 (LATE!) -->
+        <line x1="170" y1="130" x2="140" y2="175" stroke="#0a0a0a" stroke-width="5" stroke-linecap="round"/>
+        <!-- Minute hand pointing to ~12 -->
+        <line x1="170" y1="130" x2="170" y2="60" stroke="#e63946" stroke-width="3" stroke-linecap="round"/>
+        <!-- Chaos lines -->
+        <line x1="80" y1="40" x2="30" y2="10" stroke="#e63946" stroke-width="2"/>
+        <line x1="260" y1="40" x2="310" y2="15" stroke="#e63946" stroke-width="2"/>
+        <line x1="80" y1="220" x2="40" y2="270" stroke="#d4a017" stroke-width="2"/>
+        <line x1="260" y1="220" x2="300" y2="270" stroke="#d4a017" stroke-width="2"/>
+        <!-- Coffee cup -->
+        <rect x="60" y="240" width="60" height="45" rx="4" fill="#1d3557"/>
+        <path d="M120 255 Q140 255 140 270 Q140 285 120 285" fill="none" stroke="#1d3557" stroke-width="5"/>
+        <rect x="68" y="248" width="44" height="4" rx="2" fill="#d4a017"/>
+        <text x="90" y="280" text-anchor="middle" font-family="Bebas Neue,sans-serif" font-size="11" fill="#f5f0e8">COFFEE</text>
+        <!-- Alarm zaps -->
+        <text x="170" y="310" text-anchor="middle" font-family="Bebas Neue,sans-serif" font-size="22" fill="#e63946">MONDAY!</text>
+        <!-- Stars/chaos -->
+        <text x="30" y="140" font-family="Bebas Neue,sans-serif" font-size="28" fill="#d4a017">✦</text>
+        <text x="295" y="160" font-family="Bebas Neue,sans-serif" font-size="20" fill="#e63946">✦</text>
+        <text x="200" y="30" font-family="Bebas Neue,sans-serif" font-size="16" fill="#1d3557">✦</text>
+      </svg>
+    </div>
+  </div>
+</div>
+
+<!-- Main -->
+<div class="content-wrap">
+  <div class="columns">
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <p class="sidebar-label">Cast of characters</p>
+
+      <div class="character-card">
+        <p class="name">Sowmesh Metikal</p>
+        <p class="role">Protagonist · 29 · Graphic Designer</p>
+        <p>Optimist by nature, pessimist by Monday. Drinks her coffee black, her chaos calm.</p>
+      </div>
+
+      <div class="character-card">
+        <p class="name">Dev</p>
+        <p class="role">Best Friend · Chaos Agent</p>
+        <p>Shows up exactly when needed. Usually holding pastries. Never explains how.</p>
+      </div>
+
+      <div class="character-card">
+        <p class="name">Mr. Good Day</p>
+        <p class="role">Cat · Senior Saboteur</p>
+        <p>Responsible for at least three of the seven disasters. Unrepentant.</p>
+      </div>
+
+      <br/>
+      <p class="sidebar-label">Monday by the numbers</p>
+      <div class="sidebar-fact"><strong>6:47 AM</strong><br/>Time Maya's alarm went off. She had set it for 6:45. Those two minutes cost her everything.</div>
+      <div class="sidebar-fact"><strong>3</strong><br/>Number of shirts tried before settling on the first one again.</div>
+      <div class="sidebar-fact"><strong>247</strong><br/>Unread emails awaiting her. One was life-changing. She nearly deleted it.</div>
+      <div class="sidebar-fact"><strong>1</strong><br/>Perfect cup of coffee. The only one that mattered.</div>
+
+      <div class="sidebar-pull">Every Monday is a first draft of the week.</div>
+    </aside>
+
+    <!-- Story -->
+    <article class="story">
+
+      <div class="chapter">
+        <p class="chapter-number">Chapter One</p>
+        <h3 class="chapter-title">The Alarm, the Cat, and the Catastrophe</h3>
+
+        <p>The alarm did not ring so much as it detonated. At 6:47 on a Monday morning in Hyderabad, Maya Rao's phone launched itself into a rendition of a cheerful pop song so aggressively upbeat it could have been used as a weapon. Mr. Biscuit, her three-year-old tabby and full-time antagonist, took one look at the vibrating device, nudged it off the nightstand, and returned to sleep with the satisfied expression of someone who has completed their life's work.</p>
+
+        <p>Maya lay there for eleven seconds — she counted — staring at the ceiling fan's lazy revolution, negotiating silently with the universe. The universe, as it does every Monday, declined to negotiate.</p>
+
+        <p>By the time she reached the kitchen, she had already lost one earring, discovered her favourite kurta had a mysterious new stain on the collar, and learned that Mr. Biscuit had, at some point in the night, knocked her carefully prepared Monday bag entirely off the hook. Her laptop charger was now under the sofa. Her headphones were in the bathroom. Her keys were — she would find out later — inside her own shoe.</p>
+      </div>
+
+      <div class="pull-quote">
+        "Monday does not sneak up on you.<br>It <em>arrives</em> — loudly, thoroughly, without apology."
+      </div>
+
+      <div class="chapter">
+        <p class="chapter-number">Chapter Two</p>
+        <h3 class="chapter-title">The Coffee That Saved Everything</h3>
+
+        <p>There is a particular quality to the silence of a kitchen at 7:15 AM when everything has already gone wrong and the only remaining hope is coffee. Maya stood before her moka pot with the focused reverence of a person performing a sacred ritual, which is exactly what it was.</p>
+
+        <p>She measured the grounds. She filled the base with water — cold, filtered, precisely to the valve line. She assembled the pot with the care of someone who has learned, the hard way, what happens when you don't tighten it properly. She placed it on the flame and stepped back.</p>
+
+        <p>The kitchen filled with that smell — dark and warm and utterly reliable — the one thing in her morning that had not betrayed her. When she poured it into her chipped ceramic mug — the blue one that said WORLD'S OKAYEST HUMAN, a gift from Dev that she pretended to find annoying and secretly loved — she felt the particular peace of the chemically caffeinated. The chaos was still there. But now she could look at it.</p>
+      </div>
+
+      <div class="scene-break">— ✦ —</div>
+
+      <div class="chapter">
+        <p class="chapter-number">Chapter Three</p>
+        <h3 class="chapter-title">The Mashup Begins</h3>
+
+        <p>The auto she flagged down had a driver who was playing a mashup of 90s Telugu film songs remixed into lo-fi beats. Normally Maya would have found this irritating. Today, with the coffee warm in her stomach and the morning sun slanting gold across Hyderabad's chaotic streets, it sounded like the soundtrack to a life she was actively enjoying.</p>
+
+        <p>Dev was waiting outside her office building, holding two croissants and wearing an expression of someone who knows exactly how absurd everything is and has made peace with it. "You look," he said, handing her a croissant, "like a person who lost her keys in her own shoe." She stared. "Mr. Biscuit texted me," he said simply, and she chose to believe him.</p>
+
+        <p>Upstairs, at her desk, she opened her laptop to find 247 unread emails. She scrolled past forty-three newsletters, eleven meeting invites, seven passive-aggressive threads about the office kitchen, and then — there, near the bottom, from an address she almost didn't recognise — an email from a design studio in Berlin. They had seen her portfolio. They had a project. They wanted to talk.</p>
+      </div>
+
+      <div class="pull-quote">
+        "The best things arrive on<br><em>Mondays</em> — disguised as ordinary days."
+      </div>
+
+      <div class="chapter">
+        <p class="chapter-number">Chapter Four</p>
+        <h3 class="chapter-title">The Mashup, Resolved</h3>
+
+        <p>She read the email three times. Then she walked to Dev's desk and showed him the screen without saying anything. He read it, looked up at her, and said — very quietly, for Dev — "Maya. This is it." And he was right. It was it.</p>
+
+        <p>Later, she would try to explain what made that Monday different from all the other Mondays. It wasn't the chaos, which was ordinary. It wasn't the coffee, though the coffee helped. It was something about the way the whole day had been a kind of mashup — bad alarm remixed with good light, lost keys remixed with found opportunity, Mr. Good Day's sabotage remixed with Dev's inexplicable croissants — all of it layered together into something that felt, improbably, like music.</p>
+
+        <p>She replied to the Berlin studio. She CC'd nobody. She pressed send at 9:33 AM on a Monday, and outside her window, Hyderabad continued being itself — loud and golden and magnificent and late — and everything, for one beautiful moment, was exactly as it should be.</p>
+
+        <p>Mr. Good Day, at home, knocked something else off a shelf. He would not apologise. He never did. That, too, felt right.</p>
+      </div>
+
+    </article>
+  </div>
+</div>
+
+<!-- End card -->
+<div class="end-card">
+  <p class="moral">"Monday is not the enemy. Monday is the opening act. The rest of the week is yours."</p>
+  <span class="stamp">The End &nbsp;✦</span>
+</div>
+
+</body>
+</html>
