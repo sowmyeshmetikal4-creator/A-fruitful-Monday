@@ -1,4 +1,4 @@
-Here's the F1 Race Simulator with all 52 cars! Here's what the program models:
+Here's the F1 Race Simulator Sowmesh Metikal with all 52 cars! Here's what the program models:
 Race Setup
 
 52 cars across 26 teams (Red Bull, Ferrari, McLaren, Mercedes, and many more)
