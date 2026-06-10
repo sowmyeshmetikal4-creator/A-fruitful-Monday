@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>AI Bulb: Auto-On for Living Presence_Sowmesh Metikal</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body {
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      margin: 0;
+      background: #0b1220;
+      color: #e6eefc;
+      display: grid;
+      grid-template-columns: 360px 1fr;
+      grid-template-rows: auto 1fr;
+      gap: 16px;
+      padding: 16px;
+      height: 100vh;
+      box-sizing: border-box;
+    }
+    header {
+      grid-column: 1 / -1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .bulb {
+      width: 140px;
+      height: 140px;
+      border-radius: 50%;
+      margin: 8px 0;
+      background: radial-gradient(circle at 35% 30%, #222 0%, #111 60%, #000 100%);
+      box-shadow: 0 0 0 rgba(255,255,255,0);
+      transition: box-shadow 200ms ease, background 200ms ease, transform 200ms ease;
+      border: 2px solid #2a2f3a;
+    }
+    .bulb.on {
+      background: radial-gradient(circle at 35% 30%, #fff6b0 0%, #ffd75e 55%, #a86d00 100%);
+      box-shadow:
+        0 0 22px 6px rgba(255, 223, 112, 0.7),
+        0 0 120px 40px rgba(255, 204, 0, 0.25);
+      transform: translateY(-1px);
+    }
+    .panel {
+      background: #121a2f;
+      border: 1px solid #223056;
+      border-radius: 10px;
+      padding: 14px;
+    }
+    .row { display: flex; align-items: center; gap: 12px; }
+    .meter {
+      height: 10px;
+      width: 100%;
+      background: #1a2440;
+      border-radius: 6px;
+      overflow: hidden;
+      border: 1px solid #25345f;
+    }
+    .bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #69f 0%, #3fd 100%);
+      transition: width 200ms ease;
+    }
+    .small { font-size: 12px; opacity: 0.8; }
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border: 1px solid #2a3e73;
+      border-radius: 20px;
+      font-size: 12px;
+      background: #0f1730;
+    }
+    video, canvas { width: 100%; max-width: 960px; border-radius: 8px; }
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      align-items: start;
+    }
+    label { display: block; margin: 8px 0 4px; font-size: 13px; opacity: 0.9; }
+    input[type="range"] { width: 100%; }
+    code { background: #0f1630; padding: 2px 6px; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <header>    
+     <div class="row">
+      <div id="bulb" class="bulb" aria-label="Bulb"></div>
+      <div>
+        <div style="font-weight:600;">AI Bulb</div>
+        <div class="small">Auto-on when a living being is likely present-core Sowmesh Metikal</div>
+        <div id="status" class="badge">Initializing…</div>
+      </div>
+    </div>
+    <div class="panel" style="min-width:320px;">
+      <div class="row" style="gap:8px;">
+        <div style="width:72px;">Confidence</div>
+        <div class="meter"><div id="confBar" class="bar"></div></div>
+        <div id="confNum" style="width:48px; text-align:right;">0%</div>
+      </div>
+      <div class="row small" style="margin-top:6px; gap:8px;">
+        <span>Class:</span><span id="classLabel" class="badge">—</span>
+        <span>Motion:</span><span id="motionLabel" class="badge">—</span>
+        <span>Heartbeat-like:</span><span id="pulseLabel" class="badge">—</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="grid">
+    <div class="panel">
+      <label>Camera</label>
+      <video id="video" autoplay playsinline muted></video>
+      <div class="small" style="margin-top:6px;">
+        Tip: Good lighting and steady framing improve detection. No data leaves your device.
+      </div>
+      <div style="margin-top:10px;">
+        <label for="threshold">On-threshold (<code>0.0–1.0</code>)</label>
+        <input id="threshold" type="range" min="0" max="1" step="0.01" value="0.55" />
+      </div>
+      <div class="row small" style="margin-top:4px;">
+        <span>Value:</span><span id="thVal" class="badge">0.55</span>
+      </div>
+    </div>
+
+    <div class="panel">
+      <label>Processing Views</label>
+      <canvas id="proc" width="640" height="360"></canvas>
+      <div class="small">Left: grayscale frame. Right: motion heatmap. A green box shows the ROI used for heartbeat-like micro-motions.</div>
+    </div>
+  </div>
+
+  <script>
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('proc');
+    const ctx = canvas.getContext('2d');
+    const bulb = document.getElementById('bulb');
+    const statusEl = document.getElementById('status');
+    const confBar = document.getElementById('confBar');
+    const confNum = document.getElementById('confNum');
+    const classLabel = document.getElementById('classLabel');
+    const motionLabel = document.getElementById('motionLabel');
+    const pulseLabel = document.getElementById('pulseLabel');
+    const thresholdEl = document.getElementById('threshold');
+    const thVal = document.getElementById('thVal');
+
+    let prevImage = null;
+    let motionScore = 0;
+    let livingConfidence = 0;
+    let heartbeatSignal = [];
+    const maxSignalLen = 150; // ~5s at 30 FPS
+    let fps = 0, lastTs = 0;
+
+    // Simple moving average helper
+    function sma(arr, w) {
+      const out = [];
+      let sum = 0;
+      for (let i = 0; i < arr.length; i++) {
+        sum += arr[i];
+        if (i >= w) sum -= arr[i - w];
+        out.push(i >= w - 1 ? sum / w : arr[i]);
+      }
+      return out;
+    }
+
+    // Estimate periodicity by counting peaks in band-limited signal
+    function estimatePulseHz(signal, sampleRate) {
+      if (signal.length < 30) return 0;
+      // Detrend
+      const mean = signal.reduce((a,b)=>a+b,0)/signal.length;
+      const s0 = signal.map(v => v - mean);
+      // Smooth
+      const s1 = sma(s0, 5);
+      // Simple peak count
+      let peaks = 0;
+      for (let i = 1; i < s1.length - 1; i++) {
+        if (s1[i] > s1[i-1] && s1[i] > s1[i+1] && s1[i] > 0) peaks++;
+      }
+      const seconds = s1.length / (sampleRate || 30);
+      const hz = seconds > 0 ? (peaks / seconds) / 2 : 0; // divide by 2 for roughness
+      // Band-pass: 0.8–3.0 Hz (48–180 bpm) typical for many animals/humans at rest/motion
+      if (hz < 0.8 || hz > 3.0) return 0;
+      return hz;
+    }
+
+    async function initCamera() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { width: { ideal: 640 }, height: { ideal: 360 }, facingMode: 'user' },
+          audio: false
+        });
+        video.srcObject = stream;
+        statusEl.textContent = 'Camera ready';
+      } catch (e) {
+        statusEl.textContent = 'Camera access denied';
+        console.error(e);
+      }
+    }
+
+    function processFrame(ts) {
+      if (!lastTs) lastTs = ts;
+      const dt = (ts - lastTs) / 1000;
+      fps = dt > 0 ? 1 / dt : fps;
+      lastTs = ts;
+
+      const W = canvas.width, H = canvas.height;
+      // Draw video to left half
+      ctx.drawImage(video, 0, 0, W/2, H);
+
+      // Get left image data (grayscale)
+      const img = ctx.getImageData(0, 0, W/2, H);
+      const data = img.data;
+      const gray = new Uint8ClampedArray((W/2) * H);
+      for (let i = 0, j = 0; i < data.length; i += 4, j++) {
+        gray[j] = (data[i] * 0.299 + data[i+1] * 0.587 + data[i+2] * 0.114) | 0;
+      }
+
+      // Frame differencing for motion map
+      let diff = new Uint8ClampedArray(gray.length);
+      if (prevImage) {
+        for (let i = 0; i < gray.length; i++) {
+          diff[i] = Math.abs(gray[i] - prevImage[i]);
+        }
+      }
+      prevImage = gray;
+
+      // Visualize motion on right half
+      const heat = ctx.createImageData(W/2, H);
+      let sumMotion = 0;
+      for (let i = 0, j = 0; i < heat.data.length; i += 4, j++) {
+        const v = diff[j] || 0;
+        sumMotion += v;
+        // Blue -> Red scale
+        heat.data[i+0] = v;        // R
+        heat.data[i+1] = 0;        // G
+        heat.data[i+2] = 255 - v;  // B
+        heat.data[i+3] = 180;      // A
+      }
+      ctx.putImageData(heat, W/2, 0);
+
+      // Find a rough ROI: the largest contiguous high-motion area (here: simple center-weighted box)
+      // For demo, we pick the central box and assume typical subject is there
+      const roi = {
+        x: Math.floor(W/4 - 80),
+        y: Math.floor(H/2 - 60),
+        w: 160,
+        h: 120
+      };
+
+      // Compute motion intensity in ROI and micro-motion variance
+      let roiMotion = 0;
+      let roiCount = 0;
+      for (let y = 0; y < roi.h; y++) {
+        for (let x = 0; x < roi.w; x++) {
+          const gx = roi.x + x;
+          const gy = roi.y + y;
+          if (gx < 0 || gx >= W/2 || gy < 0 || gy >= H) continue;
+          const idx = gy * (W/2) + gx;
+          roiMotion += diff[idx] || 0;
+          roiCount++;
+        }
+      }
+      const avgRoiMotion = roiCount ? roiMotion / roiCount : 0;
+
+      // Track micro-motions in ROI by averaging grayscale inside ROI
+      let roiGraySum = 0;
+      for (let y = 0; y < roi.h; y++) {
+        for (let x = 0; x < roi.w; x++) {
+          const gx = roi.x + x;
+          const gy = roi.y + y;
+          if (gx < 0 || gx >= W/2 || gy < 0 || gy >= H) continue;
+          const idx = gy * (W/2) + gx;
+          roiGraySum += gray[idx];
+        }
+      }
+      const roiGrayMean = roiCount ? roiGraySum / roiCount : 0;
+
+      // Build heartbeat-like signal from derivative of ROI mean brightness (subtle rhythmic changes)
+      const lastMean = heartbeatSignal.length ? heartbeatSignal[heartbeatSignal.length-1] : roiGrayMean;
+      const delta = roiGrayMean - lastMean;
+      heartbeatSignal.push(delta);
+      if (heartbeatSignal.length > maxSignalLen) heartbeatSignal.shift();
+
+      // Scores
+      const totalMotion = sumMotion / gray.length;         // 0..255 scale average
+      const motionNorm = Math.min(totalMotion / 12, 1);    // normalize roughly
+      motionScore = 0.7 * motionScore + 0.3 * motionNorm;  // EMA
+
+      const pulseHz = estimatePulseHz(heartbeatSignal, Math.min(Math.max(fps, 10), 60));
+      const hasPulseLike = pulseHz > 0;
+
+      // Naive classifier: infer living vs non-living
+      // Heuristics: enough motion + size of ROI motion + presence of rhythmic micro-motion
+      const roiSizeFactor = Math.min((roi.w * roi.h) / ( (W/2) * H ), 1); // proportion of frame
+      let classGuess = 'non-living';
+      let conf = 0.15 * motionScore + 0.25 * (avgRoiMotion / 15) + 0.3 * roiSizeFactor + (hasPulseLike ? 0.3 : 0);
+      conf = Math.max(0, Math.min(conf, 1));
+
+      if (conf > 0.3) classGuess = 'living (unspecified)';
+      // Coarse human vs animal hint by aspect & vertical motion concentration
+      const humanHint = roi.h > roi.w * 0.7; // tall area tends to be human torso/face in portrait
+      if (classGuess.startsWith('living')) {
+        classGuess = humanHint ? 'human (likely)' : 'animal (likely)';
+      }
+
+      livingConfidence = 0.8 * livingConfidence + 0.2 * conf;
+
+      // Draw ROI box
+      ctx.strokeStyle = hasPulseLike ? '#3fd' : '#6cf';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(roi.x, roi.y, roi.w, roi.h);
+      // Draw on the motion pane, mirrored ROI
+      ctx.strokeStyle = hasPulseLike ? '#3fd' : '#f66';
+      ctx.strokeRect(W/2 + roi.x, roi.y, roi.w, roi.h);
+
+      // Update UI
+      const threshold = parseFloat(thresholdEl.value);
+      thVal.textContent = threshold.toFixed(2);
+      const on = livingConfidence >= threshold;
+
+      bulb.classList.toggle('on', on);
+      statusEl.textContent = on ? 'Bulb: ON (living presence detected)' : 'Bulb: OFF';
+
+      confBar.style.width = Math.round(livingConfidence * 100) + '%';
+      confNum.textContent = Math.round(livingConfidence * 100) + '%';
+      classLabel.textContent = classGuess;
+      motionLabel.textContent = (motionScore > 0.15 ? 'active' : 'low') + ` (${fps ? fps.toFixed(0) : '—'} fps)`;
+      pulseLabel.textContent = hasPulseLike ? `yes ~${(pulseHz*60).toFixed(0)} bpm` : 'no';
+
+      requestAnimationFrame(processFrame);
+    }
+
+    function start() {
+      initCamera().then(() => {
+        requestAnimationFrame(processFrame);
+      });
+      thresholdEl.addEventListener('input', () => {
+        thVal.textContent = parseFloat(thresholdEl.value).toFixed(2);
+      });
+    }
+
+    // Start after user gesture for autoplay policies
+    window.addEventListener('click', function once() {
+      window.removeEventListener('click', once);
+      start();
+      statusEl.textContent = 'Starting…';
+    });
+
+    // Accessibility: keyboard start
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        start();
+      }
+    });
+  </script>
+</body>
+</html>
