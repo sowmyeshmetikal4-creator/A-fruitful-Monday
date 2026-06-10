@@ -1,0 +1,507 @@
+
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font-sans); background: transparent; }
+
+  .container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 28px;
+    padding: 2rem 1rem;
+  }
+
+  .fan-stage {
+    position: relative;
+    width: 260px;
+    height: 260px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .pulse-ring {
+    position: absolute;
+    width: 260px;
+    height: 260px;
+    border-radius: 50%;
+    border: 1.5px solid var(--color-border-tertiary);
+    animation: none;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .pulse-ring.r2 { width: 220px; height: 220px; }
+  .pulse-ring.r3 { width: 180px; height: 180px; }
+
+  .fan-wrap {
+    position: relative;
+    width: 200px;
+    height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .fan-svg {
+    width: 200px;
+    height: 200px;
+    transform-origin: center;
+    transition: filter 0.4s;
+  }
+
+  .fan-blade {
+    transform-origin: 100px 100px;
+    transition: opacity 0.3s;
+  }
+
+  .hub {
+    fill: var(--color-background-secondary);
+    stroke: var(--color-border-secondary);
+    stroke-width: 1px;
+  }
+
+  .hub-inner {
+    fill: var(--color-background-primary);
+    stroke: var(--color-border-tertiary);
+    stroke-width: 0.5px;
+  }
+
+  .heart-icon {
+    font-size: 14px;
+    transition: transform 0.1s, color 0.3s;
+    color: var(--color-text-secondary);
+  }
+  .heart-icon.beating {
+    color: #D85A30;
+    animation: heartpulse 0s linear infinite;
+  }
+
+  @keyframes heartpulse {
+    0%,100% { transform: scale(1); }
+    15% { transform: scale(1.45); }
+    30% { transform: scale(0.95); }
+    45% { transform: scale(1.3); }
+  }
+
+  @keyframes pulseRing {
+    0% { transform: scale(0.85); opacity: 0.7; }
+    100% { transform: scale(1.15); opacity: 0; }
+  }
+
+  .info-row {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+  }
+
+  .stat {
+    text-align: center;
+    min-width: 80px;
+  }
+  .stat-val {
+    font-size: 24px;
+    font-weight: 500;
+    color: var(--color-text-primary);
+    font-variant-numeric: tabular-nums;
+  }
+  .stat-label {
+    font-size: 11px;
+    color: var(--color-text-secondary);
+    margin-top: 2px;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+  }
+
+  .divider-v {
+    width: 0.5px;
+    height: 36px;
+    background: var(--color-border-tertiary);
+  }
+
+  .ecg-wrap {
+    width: 100%;
+    max-width: 400px;
+    border: 0.5px solid var(--color-border-tertiary);
+    border-radius: var(--border-radius-lg);
+    overflow: hidden;
+    background: var(--color-background-secondary);
+    position: relative;
+    height: 72px;
+  }
+
+  .ecg-label {
+    position: absolute;
+    top: 6px;
+    left: 10px;
+    font-size: 10px;
+    color: var(--color-text-secondary);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  #ecg-canvas {
+    display: block;
+    width: 100%;
+    height: 72px;
+  }
+
+  .btn-main {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 32px;
+    border: 0.5px solid var(--color-border-secondary);
+    border-radius: var(--border-radius-lg);
+    background: var(--color-background-primary);
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--color-text-primary);
+    font-family: var(--font-sans);
+    transition: background 0.2s, transform 0.1s, border-color 0.2s;
+    position: relative;
+    overflow: hidden;
+    min-width: 180px;
+    justify-content: center;
+  }
+  .btn-main:hover { background: var(--color-background-secondary); border-color: var(--color-border-primary); }
+  .btn-main:active { transform: scale(0.97); }
+  .btn-main.on { border-color: #D85A30; }
+
+  .speed-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .speed-label { font-size: 13px; color: var(--color-text-secondary); min-width: 50px; }
+  .speed-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 0.5px solid var(--color-border-secondary);
+    background: var(--color-background-primary);
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--color-text-secondary);
+    font-family: var(--font-sans);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+  }
+  .speed-btn:hover { background: var(--color-background-secondary); color: var(--color-text-primary); }
+  .speed-btn.active {
+    background: var(--color-background-secondary);
+    border-color: #D85A30;
+    color: #D85A30;
+  }
+
+  .mode-tag {
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: var(--border-radius-md);
+    background: var(--color-background-secondary);
+    color: var(--color-text-secondary);
+    border: 0.5px solid var(--color-border-tertiary);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    transition: background 0.3s, color 0.3s, border-color 0.3s;
+  }
+  .mode-tag.on {
+    background: rgba(216, 90, 48, 0.08);
+    color: #D85A30;
+    border-color: rgba(216, 90, 48, 0.25);
+  }
+</style>
+
+<h2 class="sr-only">AI Fan controlled by a simulated human heartbeat. Press the button to start or stop the fan.</h2>
+<p style="font-size:12px;color:var(--color-text-tertiary);margin-top:20px;line-height:1.6;">Message:<a href="https://photos.app.goo.gl/PLySwhBH4n5jmHLY6/">Visit photos.com!</a>.</p>
+
+<div class="container">
+
+  <div class="fan-stage" id="fanStage">
+    <div class="pulse-ring" id="pr1"></div>
+    <div class="pulse-ring r2" id="pr2"></div>
+    <div class="pulse-ring r3" id="pr3"></div>
+
+    <div class="fan-wrap">
+      <svg class="fan-svg" id="fanSvg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <defs>
+          <radialGradient id="bladeGrad" cx="35%" cy="35%" r="65%">
+            <stop offset="0%" stop-color="#B5D4F4"/>
+            <stop offset="100%" stop-color="#185FA5"/>
+          </radialGradient>
+          <radialGradient id="bladeGrad2" cx="35%" cy="35%" r="65%">
+            <stop offset="0%" stop-color="#9FE1CB"/>
+            <stop offset="100%" stop-color="#0F6E56"/>
+          </radialGradient>
+        </defs>
+
+        <!-- Blade 1 -->
+        <g class="fan-blade" id="blade0">
+          <path d="M100,100 C85,80 75,45 100,20 C125,45 115,80 100,100 Z" fill="url(#bladeGrad)" opacity="0.92"/>
+        </g>
+        <!-- Blade 2 -->
+        <g class="fan-blade" style="transform: rotate(60deg)" id="blade1">
+          <path d="M100,100 C85,80 75,45 100,20 C125,45 115,80 100,100 Z" fill="url(#bladeGrad2)" opacity="0.92"/>
+        </g>
+        <!-- Blade 3 -->
+        <g class="fan-blade" style="transform: rotate(120deg)" id="blade2">
+          <path d="M100,100 C85,80 75,45 100,20 C125,45 115,80 100,100 Z" fill="url(#bladeGrad)" opacity="0.88"/>
+        </g>
+        <!-- Blade 4 -->
+        <g class="fan-blade" style="transform: rotate(180deg)" id="blade3">
+          <path d="M100,100 C85,80 75,45 100,20 C125,45 115,80 100,100 Z" fill="url(#bladeGrad2)" opacity="0.88"/>
+        </g>
+        <!-- Blade 5 -->
+        <g class="fan-blade" style="transform: rotate(240deg)" id="blade4">
+          <path d="M100,100 C85,80 75,45 100,20 C125,45 115,80 100,100 Z" fill="url(#bladeGrad)" opacity="0.84"/>
+        </g>
+        <!-- Blade 6 -->
+        <g class="fan-blade" style="transform: rotate(300deg)" id="blade5">
+          <path d="M100,100 C85,80 75,45 100,20 C125,45 115,80 100,100 Z" fill="url(#bladeGrad2)" opacity="0.84"/>
+        </g>
+
+        <!-- Hub -->
+        <circle class="hub" cx="100" cy="100" r="18"/>
+        <circle class="hub-inner" cx="100" cy="100" r="10"/>
+      </svg>
+    </div>
+  </div>
+
+  <div class="info-row">
+    <div class="stat">
+      <div class="stat-val" id="bpmVal">—</div>
+      <div class="stat-label">BPM</div>
+    </div>
+    <div class="divider-v"></div>
+    <div class="stat">
+      <div class="stat-val" id="rpmVal">—</div>
+      <div class="stat-label">Fan RPM</div>
+    </div>
+    <div class="divider-v"></div>
+    <div class="stat">
+      <div class="stat-val" id="windVal">—</div>
+      <div class="stat-label">Wind km/h</div>
+    </div>
+  </div>
+
+  <div class="ecg-wrap">
+    <span class="ecg-label">ECG · Heartbeat signal</span>
+    <canvas id="ecg-canvas" width="800" height="72"></canvas>
+  </div>
+
+  <div class="speed-row">
+    <span class="speed-label">Speed</span>
+    <button class="speed-btn" id="sp1" onclick="setSpeed(1)" title="Low">1</button>
+    <button class="speed-btn" id="sp2" onclick="setSpeed(2)" title="Medium">2</button>
+    <button class="speed-btn" id="sp3" onclick="setSpeed(3)" title="High">3</button>
+  </div>
+
+  <button class="btn-main" id="mainBtn" onclick="toggleFan()" aria-pressed="false">
+    <i class="ti ti-heart heart-icon" id="heartIcon" aria-hidden="true"></i>
+    <span class="heart-icon">💞</span>
+    <span id="btnLabel">Start Fan</span>
+    <span class="mode-tag" id="modeTag">Off</span>
+  </button>
+
+</div>
+
+<script>
+(function(){
+  let running = false;
+  let speedLevel = 2;
+  let angle = 0;
+  let raf = null;
+  let bpm = 72;
+  let targetBpm = 72;
+  let beatTimer = null;
+  let ecgPoints = [];
+  let ecgX = 0;
+  let lastBeatTime = 0;
+
+  const bpmRanges = { 1: [55,66], 2:[66,87], 3:[87,120] };
+  const rpmMap = { 1: 140, 2: 270, 3: 400 };
+  const windMap = { 1: 20, 2: 29 , 3: 52 };
+
+  const fanSvg = document.getElementById('fanSvg');
+  const mainBtn = document.getElementById('mainBtn');
+  const btnLabel = document.getElementById('btnLabel');
+  const modeTag = document.getElementById('modeTag');
+  const heartIcon = document.getElementById('heartIcon');
+  const bpmVal = document.getElementById('bpmVal');
+  const rpmVal = document.getElementById('rpmVal');
+  const windVal = document.getElementById('windVal');
+  const pr1 = document.getElementById('pr1');
+  const pr2 = document.getElementById('pr2');
+  const pr3 = document.getElementById('pr3');
+  const ecgCanvas = document.getElementById('ecg-canvas');
+  const ctx = ecgCanvas.getContext('2d');
+
+  const W = 800, H = 72;
+  ecgCanvas.width = W; ecgCanvas.height = H;
+
+  function getSpeed() {
+    return speedLevel;
+  }
+
+  window.setSpeed = function(s) {
+    speedLevel = s;
+    [1,2,3].forEach(n => {
+      const el = document.getElementById('sp'+n);
+      el.classList.toggle('active', n === s);
+    });
+    if(running) {
+      const r = bpmRanges[s];
+      targetBpm = Math.round(r[0] + Math.random()*(r[1]-r[0]));
+      rpmVal.textContent = rpmMap[s];
+      windVal.textContent = windMap[s];
+    }
+  }
+
+  window.toggleFan = function() {
+    running = !running;
+    mainBtn.setAttribute('aria-pressed', running);
+    if(running) {
+      mainBtn.classList.add('on');
+      btnLabel.textContent = 'Stop Fan';
+      modeTag.textContent = 'Running';
+      modeTag.classList.add('on');
+      heartIcon.classList.add('beating');
+      setSpeed(speedLevel);
+      rpmVal.textContent = rpmMap[speedLevel];
+      windVal.textContent = windMap[speedLevel];
+      pr1.style.opacity = '1';
+      pr2.style.opacity = '1';
+      pr3.style.opacity = '1';
+      scheduleBeat();
+      spinLoop();
+    } else {
+      mainBtn.classList.remove('on');
+      btnLabel.textContent = 'Start Fan';
+      modeTag.textContent = 'Off';
+      modeTag.classList.remove('on');
+      heartIcon.classList.remove('beating');
+      bpmVal.textContent = '—';
+      rpmVal.textContent = '—';
+      windVal.textContent = '—';
+      pr1.style.opacity = '0';
+      pr2.style.opacity = '0';
+      pr3.style.opacity = '0';
+      if(beatTimer) clearTimeout(beatTimer);
+      if(raf) cancelAnimationFrame(raf);
+      raf = null;
+      heartIcon.style.animationDuration = '';
+    }
+  }
+
+  function scheduleBeat() {
+    if(!running) return;
+    const r = bpmRanges[speedLevel];
+    bpm += (targetBpm - bpm) * 0.15;
+    bpm += (Math.random()-0.5)*1.5;
+    bpm = Math.max(r[0]-4, Math.min(r[1]+4, bpm));
+    const roundBpm = Math.round(bpm);
+    bpmVal.textContent = roundBpm;
+
+    const interval = Math.round(60000/bpm);
+    heartIcon.style.animationDuration = (interval/1000).toFixed(2)+'s';
+
+    doPulse();
+    drawEcgBeat();
+    lastBeatTime = Date.now();
+
+    beatTimer = setTimeout(scheduleBeat, interval + (Math.random()-0.5)*40);
+  }
+
+  function doPulse() {
+    [pr1,pr2,pr3].forEach((r,i) => {
+      r.style.animation = 'none';
+      void r.offsetWidth;
+      const delay = i * 90;
+      r.style.animation = `pulseRing ${0.9 + i*0.12}s ease-out ${delay}ms forwards`;
+    });
+  }
+
+  function drawEcgBeat() {
+    const beatShape = [
+      0,0,0,0,
+      0.08, 0.14, 0.08, 0,
+      -0.25,
+      1.0,
+      -0.55,
+      0.15, 0.2, 0.15,
+      0, 0, 0, 0, 0
+    ];
+    const pxPerStep = 10;
+    beatShape.forEach((v, i) => {
+      const x = (ecgX + i * pxPerStep);
+      const y = H/2 - v * (H/2 - 8);
+      ecgPoints.push({x: x % (W * 3), y});
+    });
+    ecgX += beatShape.length * pxPerStep;
+  }
+
+  let ecgOffset = 0;
+  function drawEcg() {
+    ctx.clearRect(0,0,W,H);
+
+    const isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const lineColor = isDark ? '#5DCAA5' : '#1D9E75';
+    const fadeBg = isDark ? 'rgba(8,80,65,0.18)' : 'rgba(225,245,238,0.7)';
+
+    ctx.fillStyle = 'powderblue';
+    ctx.fillRect(0,0,W,H);
+
+    if(running && ecgPoints.length > 1) {
+      ecgOffset = (ecgOffset + (running ? (speedLevel * 0.4 + 0.8) : 0));
+      const scroll = ecgOffset % W;
+
+      ctx.strokeStyle = lineColor;
+      ctx.lineWidth = 1.5;
+      ctx.lineJoin = 'round';
+      ctx.shadowBlur = 0;
+      ctx.beginPath();
+      let started = false;
+      ecgPoints.forEach(p => {
+        const drawX = ((p.x - scroll + W*4) % W);
+        if(!started) { ctx.moveTo(drawX, p.y); started=true; }
+        else ctx.lineTo(drawX, p.y);
+      });
+      ctx.stroke();
+
+      const scanX = W - 60;
+      const grad = ctx.createLinearGradient(scanX, 0, W, 0);
+      grad.addColorStop(0, 'powderblue');
+      grad.addColorStop(1, fadeBg);
+      ctx.fillStyle = grad;
+      ctx.fillRect(scanX, 0, W, H);
+
+      if(ecgPoints.length > 600) ecgPoints = ecgPoints.slice(-400);
+    } else {
+      ctx.strokeStyle = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
+      ctx.lineWidth = 0.5;
+      ctx.setLineDash([2,6]);
+      ctx.beginPath();
+      ctx.moveTo(0, H/2); ctx.lineTo(W, H/2);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    requestAnimationFrame(drawEcg);
+  }
+  drawEcg();
+
+  function spinLoop() {
+    if(!running) { return; }
+    const rpm = rpmMap[speedLevel];
+    const degPerFrame = (rpm * 360) / (60 * 60);
+    angle = (angle + degPerFrame) % 360;
+    fanSvg.style.transform = `rotate(${angle.toFixed(2)}deg)`;
+    raf = requestAnimationFrame(spinLoop);
+  }
+
+  setSpeed(2);
+})();
+</script>
